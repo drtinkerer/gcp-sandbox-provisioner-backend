@@ -133,6 +133,7 @@ class GCPSandboxService:
             name=f"{cloud_tasks_queue_id}/tasks/{task_name}",
             http_request=tasks_v2.HttpRequest(
                 url=f"{cloud_run_service_url}/api/v1/gcp/delete/{project_id}",
+                http_method="DELETE",
                 headers=[("Content-Type", "application/json")],
                 oidc_token=tasks_v2.OidcToken(
                     service_account_email=config.SERVICE_ACCOUNT_EMAIL

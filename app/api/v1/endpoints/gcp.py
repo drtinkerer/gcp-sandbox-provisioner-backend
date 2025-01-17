@@ -3,7 +3,7 @@ from app.models.gcp_base_models import SandboxCreate, SandboxDelete, SandboxExte
 from app.core.config import Config
 from app.services.gcp_sandbox import GCPSandboxService
 from app.utils.logger import logger
-from app.utils.utils import generate_project_id
+from app.utils.utils import generate_sandbox_id
 from datetime import timedelta, datetime, UTC
 from google.protobuf.timestamp_pb2 import Timestamp
 
@@ -44,20 +44,18 @@ def create_sandbox(user_data: SandboxCreate):
     user_email_prefix = user_email.split("@")[0].replace(".", "-")
 
     # Check active sandboxes
-    active_projects_count = GCPSandboxService.get_active_projects_count(
-        user_email_prefix, folder_id)
+    active_projects_count = GCPSandboxService.get_active_projects_count(user_email_prefix, folder_id)
     if active_projects_count >= config.MAX_ALLOWED_PROJECTS_PER_USER:
         logger.error(f"User {user_email} has reached maximum number of allowed active sandbox projects {config.MAX_ALLOWED_PROJECTS_PER_USER}.")
         raise HTTPException(status_code=400, detail=f"ERROR 400: User {user_email} has reached maximum number of allowed active sandbox projects ({config.MAX_ALLOWED_PROJECTS_PER_USER}).")
 
     request_time = datetime.now(UTC)
-    request_time_str = request_time.strftime("%Y-%m-%d-%H-%M-%S")
 
     delta = timedelta(hours=requested_duration_hours)
     expiry_timestamp = Timestamp()
     expiry_timestamp.FromDatetime(request_time + delta)
 
-    project_id = generate_project_id(user_email, request_time_str)
+    project_id = generate_sandbox_id(user_email, request_time)
 
     logger.info(f"Handling sandbox project creation event for {user_email}...")
     create_project_response = GCPSandboxService.create_sandbox_project(project_id, folder_id)
