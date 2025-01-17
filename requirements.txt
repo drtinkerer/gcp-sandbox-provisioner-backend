@@ -1,5 +1,6 @@
 uvicorn
 fastapi
+pydantic_settings
 email-validator
 google-cloud-resource-manager
 google-cloud-tasks
