@@ -1,4 +1,5 @@
 from google.cloud import resourcemanager_v3, billing_v1, tasks_v2, run_v2
+from google.iam.v1 import policy_pb2
 from app.core.config import Config
 config = Config()
 
@@ -30,6 +31,49 @@ class GCPSandboxService:
         response = operation.result()
 
         # Handle the response
+        return response
+
+    @staticmethod
+    def set_sandbox_users_iam_role(user_emails, sandbox_project_id):
+        """
+        Set the IAM policy for a sandbox project to have the specified users as owners.
+
+        The specified users will be given the "roles/owner" role on the project.
+
+        Args:
+            user_emails (list): A list of email addresses for the users to be given the "roles/owner" role.
+            sandbox_project_id (str): The ID of the sandbox project to be modified.
+
+        Returns:
+            resourcemanager_v3.types.Policy: The new IAM policy for the project.
+        """
+        user_members = [f"user:{user_email}" for user_email in user_emails]
+
+        # Create a client
+        client = resourcemanager_v3.ProjectsClient()
+
+        # Resource name for the project
+        project_name = f"projects/{sandbox_project_id}"
+
+        # Create a new policy with a single binding
+        policy_object = policy_pb2.Policy(
+            bindings=[
+                policy_pb2.Binding(
+                    role="roles/owner",
+                    members=user_members
+                )
+            ],
+            version=3
+        )
+
+        # Make the request to set the new IAM policy
+        response = client.set_iam_policy(
+            request={
+                "resource": project_name,
+                "policy": policy_object
+            }
+        )
+
         return response
 
     @staticmethod

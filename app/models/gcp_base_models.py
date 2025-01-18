@@ -21,11 +21,6 @@ class SandboxCreate(BaseModel):
         default="POC On ",
         description="Description for sandbox requirement."
     )
-    cloud_provider: str = Field(
-        ...,
-        description="Cloud Provider to be used for the sandbox.",
-        choices=["GCP", "AWS", "AZURE"]
-    )
     additional_users: List[EmailStr] = Field(
         default=[],
         description="Optional list of additional users to grant access to the sandbox environment."

@@ -27,7 +27,6 @@ def create_gcp_sandbox(user_data: SandboxCreate):
     - `team_name`: The name of the team for which the sandbox environment is being requested.
     - `requested_duration_hours`: The number of hours for which the sandbox environment is requested.
     - `request_description`: A brief description of the request, such as the purpose of the sandbox (e.g., `"POC On XYZ"`).
-    - `cloud_provider`: The cloud provider where the sandbox will be provisioned (e.g., `AWS`, `GCP`, `Azure`).
     - `additional_users`: A list of additional users who need access to the sandbox environment. Default is an empty list.
 
     **Responses:**
@@ -40,7 +39,7 @@ def create_gcp_sandbox(user_data: SandboxCreate):
     requested_duration_hours = int(user_data.requested_duration_hours)
     request_description = user_data.request_description
     folder_id = config.AUTHORIZED_TEAM_FOLDERS[team_name]
-
+    all_users = [user_email] + user_data.additional_users
     user_email_prefix = user_email.split("@")[0].replace(".", "-")
 
     # Check active sandboxes
@@ -62,17 +61,21 @@ def create_gcp_sandbox(user_data: SandboxCreate):
     logger.info(f"Successfuly created project {project_id}.")
 
     logger.info(f"Linking project {project_id} to billing account...")
-    updated_project_billing_response = GCPSandboxService.update_project_billing_info(
-        project_id)
+    updated_project_billing_response = GCPSandboxService.update_project_billing_info(project_id)
     logger.info(f"Successfuly linked project {project_id} to billing account.")
 
     logger.info(f"Creating deletion task for Project {project_id} on Google Cloud Tasks queue...")
     create_deletion_task_response = GCPSandboxService.create_deletion_task(project_id, project_id, expiry_timestamp)
     logger.info(f"Successfully created deletion task for Project {project_id} on Google Cloud Tasks queue.")
 
+    logger.info(f"Assigning IAM role for {all_users} to project {project_id}...")
+    iam_role_assignment_response = GCPSandboxService.set_sandbox_users_iam_role(all_users,project_id)
+    logger.info(f"Successfuly asigned owner role to {all_users} for project {project_id}.")
+
     return {
         "detail": "Sandbox project provisioned succesfully",
         "user_email": user_email,
+        "additional_users": user_data.additional_users,
         "team_name": team_name,
         "project_id": project_id,
         "folder_id": folder_id,
@@ -82,7 +85,6 @@ def create_gcp_sandbox(user_data: SandboxCreate):
         "created_at": create_project_response.create_time.strftime("%Y-%d-%m %H:%M:%S UTC"),
         "expires_at": create_deletion_task_response.schedule_time.strftime("%Y-%d-%m %H:%M:%S UTC")
     }
-
 
 @router.delete("/delete/{project_id}")
 def delete_gcp_sandbox(project_id: str):
