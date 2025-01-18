@@ -13,8 +13,14 @@ app = FastAPI(
 )
 
 # Include routers
-app.include_router(gcp.router, prefix="/api/v1/gcp", tags=["GCP"])
-app.include_router(aws.router, prefix="/api/v1/aws", tags=["AWS"])
+if config.ENABLE_GCP_PROVISIONER:
+    app.include_router(gcp.router, prefix="/api/v1/gcp", tags=["Google Cloud Platform"])
+
+if config.ENABLE_AWS_PROVISIONER:
+    app.include_router(aws.router, prefix="/api/v1/aws", tags=["Amazon Web Services"])
+
+if config.ENABLE_AZURE_PROVISIONER:
+    app.include_router(aws.router, prefix="/api/v1/azure", tags=["Microsoft Azure"])
 
 
 # Root endpoint

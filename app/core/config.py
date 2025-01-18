@@ -12,7 +12,9 @@ class Config(BaseSettings):
     ORGANIZATION_ID: str
     CLOUD_TASKS_DELETION_QUEUE_ID: str
     CLOUDRUN_SERVICE_ID: str
-
+    ENABLE_GCP_PROVISIONER: bool
+    ENABLE_AWS_PROVISIONER: bool
+    ENABLE_AZURE_PROVISIONER: bool
     class Config:
         # env_file = None
         # For local development, point this to custom .env file

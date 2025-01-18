@@ -13,7 +13,7 @@ config = Config()
 router = APIRouter()
 
 @router.post("/create")
-def create_sandbox(user_data: SandboxCreate):
+def create_gcp_sandbox(user_data: SandboxCreate):
     """
     Create a new sandbox environment for a given project.
 
@@ -85,7 +85,7 @@ def create_sandbox(user_data: SandboxCreate):
 
 
 @router.delete("/delete/{project_id}")
-def delete_sandbox(project_id: str):
+def delete_gcp_sandbox(project_id: str):
     """
     Delete the sandbox environment for a given project.
 
@@ -116,7 +116,7 @@ def delete_sandbox(project_id: str):
 
 
 @router.post("/extend")
-def extend_sandbox(user_data: SandboxExtend):
+def extend_gcp_sandbox(user_data: SandboxExtend):
     """
     Extends the duration of an active sandbox project.
 
