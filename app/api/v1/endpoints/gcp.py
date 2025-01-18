@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.models.gcp_base_models import SandboxCreate, SandboxDelete, SandboxExtend
+from app.models.gcp_base_models import SandboxCreate, SandboxExtend
 from app.core.config import Config
 from app.services.gcp_sandbox import GCPSandboxService
 from app.utils.logger import logger
@@ -142,23 +142,19 @@ def extend_sandbox(user_data: SandboxExtend):
         task_id = f"{cloud_tasks_queue_id}/tasks/{project_id}"
 
     new_expiry_timestamp_proto = Timestamp()
-    current_expiry_timestamp = GCPSandboxService.get_cloud_task_expiry_time(
-        task_id)
-    new_expiry_timestamp_proto.FromSeconds(
-        current_expiry_timestamp + (3600 * extend_by_hours))
+    current_expiry_timestamp = GCPSandboxService.get_cloud_task_expiry_time(task_id)
+    new_expiry_timestamp_proto.FromSeconds(current_expiry_timestamp + (3600 * extend_by_hours))
 
     # Delete old task
     logger.info("Deleting task")
-    delete_cloud_task_response = GCPSandboxService.delete_cloud_task(task_id)
+    GCPSandboxService.delete_cloud_task(task_id)
     logger.info("Deleting task success")
-    logger.info(delete_cloud_task_response)
 
     # Create new task with updated expiry time
     logger.info("Creating updated task with new expiry")
     random_suffix = int(datetime.now(UTC).timestamp())
     updated_task_name = f"{project_id}-extended-{random_suffix}"
-    create_deletion_task_response = GCPSandboxService.create_deletion_task(
-        project_id, updated_task_name, new_expiry_timestamp_proto)
+    create_deletion_task_response = GCPSandboxService.create_deletion_task(project_id, updated_task_name, new_expiry_timestamp_proto)
     logger.info("Creating updated task with new expiry success")
     logger.info(create_deletion_task_response)
 

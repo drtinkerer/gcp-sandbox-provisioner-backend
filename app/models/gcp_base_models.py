@@ -55,14 +55,6 @@ class SandboxCreate(BaseModel):
             raise ValueError(f"Team name {validated_team_name} is invalid. Required value must be one in {config.AUTHORIZED_TEAM_FOLDERS.keys()}")
         return validated_team_name
 
-
-class SandboxDelete(BaseModel):
-    project_id: str = Field(
-        ...,
-        description="ID of the project to be deleted."
-    )
-
-
 class SandboxExtend(BaseModel):
     project_id: str = Field(
         ...,
