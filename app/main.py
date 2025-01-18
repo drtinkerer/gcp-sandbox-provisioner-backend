@@ -1,6 +1,4 @@
 from fastapi import FastAPI
-from app.api.v1.endpoints import gcp, aws
-
 from app.core.config import Config
 from app.utils.logger import logger
 
@@ -14,13 +12,16 @@ app = FastAPI(
 
 # Include routers
 if config.ENABLE_GCP_PROVISIONER:
+    from app.api.v1.endpoints import gcp
     app.include_router(gcp.router, prefix="/api/v1/gcp", tags=["Google Cloud Platform"])
 
 if config.ENABLE_AWS_PROVISIONER:
+    from app.api.v1.endpoints import aws
     app.include_router(aws.router, prefix="/api/v1/aws", tags=["Amazon Web Services"])
 
 if config.ENABLE_AZURE_PROVISIONER:
-    app.include_router(aws.router, prefix="/api/v1/azure", tags=["Microsoft Azure"])
+    from app.api.v1.endpoints import azure
+    app.include_router(azure.router, prefix="/api/v1/azure", tags=["Microsoft Azure"])
 
 
 # Root endpoint
