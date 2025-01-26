@@ -199,34 +199,33 @@ class GCPSandboxService:
         return response
 
     @staticmethod
-    def get_active_projects_count(user_email_prefix, folder_id):
+    def get_total_active_projects(user_email_prefix, folder_ids):
         """
-        Counts the number of active projects in a given folder belonging to a specific user.
+        Counts the total number of active projects across multiple folders belonging to a specific user.
 
         Args:
             user_email_prefix (str): The prefix of the user's email address.
-            folder_id (str): The ID of the folder to search for projects.
+            folder_ids (list): A list of folder IDs to search for projects.
 
         Returns:
-            int: The number of active projects in the given folder belonging to the given user.
+            int: The total count of active projects across all folders.
         """
         client = resourcemanager_v3.ProjectsClient()
+        total_project_count = 0
 
-        # Initialize request argument(s)
-        request = resourcemanager_v3.ListProjectsRequest(
-            parent=folder_id,
-        )
+        for folder_id in folder_ids:
+            # Initialize request argument(s)
+            request = resourcemanager_v3.ListProjectsRequest(parent=folder_id)
 
-        # Make the request
-        page_result = client.list_projects(request=request)
+            # Make the request
+            page_result = client.list_projects(request=request)
 
-        project_list = [response.project_id for response in page_result]
+            # Count matching projects in the folder
+            for project in page_result:
+                if user_email_prefix in project.display_name:  # Adjust filtering logic as needed
+                    total_project_count += 1
 
-        count = 0
-        for project in project_list:
-            if user_email_prefix in project:
-                count += 1
-        return count
+        return total_project_count
 
     @staticmethod
     def get_cloud_task_expiry_time(task_id):

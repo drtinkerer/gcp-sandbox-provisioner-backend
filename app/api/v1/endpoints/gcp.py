@@ -43,7 +43,7 @@ def create_gcp_sandbox(user_data: SandboxCreate):
     user_email_prefix = user_email.split("@")[0].replace(".", "-")
 
     # Check active sandboxes
-    active_projects_count = GCPSandboxService.get_active_projects_count(user_email_prefix, folder_id)
+    active_projects_count = GCPSandboxService.get_total_active_projects(user_email_prefix, list(config.AUTHORIZED_TEAM_FOLDERS.values()))
     if active_projects_count >= config.MAX_ALLOWED_PROJECTS_PER_USER:
         logger.error(f"User {user_email} has reached maximum number of allowed active sandbox projects {config.MAX_ALLOWED_PROJECTS_PER_USER}.")
         raise HTTPException(status_code=400, detail=f"ERROR 400: User {user_email} has reached maximum number of allowed active sandbox projects ({config.MAX_ALLOWED_PROJECTS_PER_USER}).")
@@ -60,13 +60,13 @@ def create_gcp_sandbox(user_data: SandboxCreate):
     create_project_response = GCPSandboxService.create_sandbox_project(project_id, folder_id)
     logger.info(f"Successfuly created project {project_id}.")
 
-    logger.info(f"Linking project {project_id} to billing account...")
-    updated_project_billing_response = GCPSandboxService.update_project_billing_info(project_id)
-    logger.info(f"Successfuly linked project {project_id} to billing account.")
-
     logger.info(f"Creating deletion task for Project {project_id} on Google Cloud Tasks queue...")
     create_deletion_task_response = GCPSandboxService.create_deletion_task(project_id, project_id, expiry_timestamp)
     logger.info(f"Successfully created deletion task for Project {project_id} on Google Cloud Tasks queue.")
+
+    logger.info(f"Linking project {project_id} to billing account...")
+    updated_project_billing_response = GCPSandboxService.update_project_billing_info(project_id)
+    logger.info(f"Successfuly linked project {project_id} to billing account.")
 
     logger.info(f"Assigning IAM role for {all_users} to project {project_id}...")
     iam_role_assignment_response = GCPSandboxService.set_sandbox_users_iam_role(all_users,project_id)
