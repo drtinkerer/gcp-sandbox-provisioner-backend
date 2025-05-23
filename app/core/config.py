@@ -21,7 +21,7 @@ class Config(BaseSettings):
         # If ENVIRONMENT Variables are not present in system OS,
         # then config will get picked up from .env file
         # Recommended way is to use docker for development and mount .env
-        env_file = ".env"
+        env_file = [".env", "../.env"]  # Try both current directory and parent directory
 
     def __init__(self, **kwargs):
         """
