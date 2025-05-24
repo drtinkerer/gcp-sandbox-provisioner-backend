@@ -1,12 +1,11 @@
 from fastapi import FastAPI, Response, status
 from fastapi.responses import HTMLResponse
-from app.core.config import Config
-from app.utils.logger import logger
+from app.core.config import get_config
 import uvicorn
 import logging
 
-# Create an instance of the Config class
-config = Config()
+# Get the singleton config instance
+config = get_config()
 
 app = FastAPI(
     title="Cloud Sandbox Management API",
@@ -30,18 +29,24 @@ def register_log_filter() -> None:
 # Register the log filter to prevent health endpoint logging
 register_log_filter()
 
-# Include routers
-if config.ENABLE_GCP_PROVISIONER:
-    from app.api.v1.endpoints import gcp
-    app.include_router(gcp.router, prefix="/api/v1/gcp", tags=["Google Cloud Platform"])
+# Function to dynamically include routers on first request
+def setup_routers():
+    """Lazy load and setup routers based on configuration."""
+    # Include routers only when needed
+    if config.ENABLE_GCP_PROVISIONER:
+        from app.api.v1.endpoints import gcp
+        app.include_router(gcp.router, prefix="/api/v1/gcp", tags=["Google Cloud Platform"])
 
-if config.ENABLE_AWS_PROVISIONER:
-    from app.api.v1.endpoints import aws
-    app.include_router(aws.router, prefix="/api/v1/aws", tags=["Amazon Web Services"])
+    if config.ENABLE_AWS_PROVISIONER:
+        from app.api.v1.endpoints import aws
+        app.include_router(aws.router, prefix="/api/v1/aws", tags=["Amazon Web Services"])
 
-if config.ENABLE_AZURE_PROVISIONER:
-    from app.api.v1.endpoints import azure
-    app.include_router(azure.router, prefix="/api/v1/azure", tags=["Microsoft Azure"])
+    if config.ENABLE_AZURE_PROVISIONER:
+        from app.api.v1.endpoints import azure
+        app.include_router(azure.router, prefix="/api/v1/azure", tags=["Microsoft Azure"])
+
+# Setup routers immediately after app creation
+setup_routers()
 
 # Health check endpoint - not included in docs and no logging
 @app.get("/health", include_in_schema=False)
@@ -128,4 +133,11 @@ def root():
 
 
 if __name__ == "__main__":
+    import sys
+    
+    # Check if we're just testing startup time
+    if "--check-startup-only" in sys.argv:
+        print("Startup completed successfully")
+        sys.exit(0)
+    
     uvicorn.run(app, host="0.0.0.0", port=8000)

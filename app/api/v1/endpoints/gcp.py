@@ -1,14 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from app.models.gcp_base_models import SandboxCreate, SandboxExtend
-from app.core.config import Config
+from app.core.config import get_config
 from app.services.gcp_sandbox import GCPSandboxService
-from app.utils.logger import logger
 from app.utils.utils import generate_sandbox_id
 from datetime import timedelta, datetime, UTC
-from google.protobuf.timestamp_pb2 import Timestamp
 
+# Get the singleton config instance
+config = get_config()
 
-config = Config()
+# Lazy import for Google protobuf to improve startup performance
+def get_timestamp():
+    from google.protobuf.timestamp_pb2 import Timestamp
+    return Timestamp
 
 router = APIRouter()
 
@@ -51,11 +54,15 @@ def create_gcp_sandbox(user_data: SandboxCreate):
     request_time = datetime.now(UTC)
 
     delta = timedelta(hours=requested_duration_hours)
+    Timestamp = get_timestamp()
     expiry_timestamp = Timestamp()
     expiry_timestamp.FromDatetime(request_time + delta)
 
     project_id = generate_sandbox_id(user_email, request_time)
 
+    # Lazy import logger to avoid startup overhead
+    from app.utils.logger import logger
+    
     logger.info(f"Handling sandbox project creation event for {user_email}...")
     create_project_response = GCPSandboxService.create_sandbox_project(project_id, folder_id)
     logger.info(f"Successfuly created project {project_id}.")
@@ -104,6 +111,9 @@ def delete_gcp_sandbox(project_id: str):
     - `500 Internal Server Error`: If there is an issue with the cloud provider during the deletion process.
     """
 
+    # Lazy import logger to avoid startup overhead
+    from app.utils.logger import logger
+    
     logger.info(f"Unlinking project {project_id} from associated billing account...")
     GCPSandboxService.unlink_project_billing_info(project_id)
     logger.info(f"Handling sandbox project deletion event for {project_id}")
@@ -143,6 +153,10 @@ def extend_gcp_sandbox(user_data: SandboxExtend):
     except:
         task_id = f"{cloud_tasks_queue_id}/tasks/{project_id}"
 
+    # Lazy import logger to avoid startup overhead
+    from app.utils.logger import logger
+    
+    Timestamp = get_timestamp()
     new_expiry_timestamp_proto = Timestamp()
     current_expiry_timestamp = GCPSandboxService.get_cloud_task_expiry_time(task_id)
     new_expiry_timestamp_proto.FromSeconds(current_expiry_timestamp + (3600 * extend_by_hours))

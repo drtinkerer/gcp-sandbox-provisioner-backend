@@ -1,7 +1,6 @@
-from google.cloud import resourcemanager_v3, billing_v1, tasks_v2, run_v2
-from google.iam.v1 import policy_pb2
-from app.core.config import Config
-config = Config()
+# Lazy imports for Google Cloud SDK to improve startup performance
+from app.core.config import get_config
+config = get_config()
 
 
 class GCPSandboxService:
@@ -17,6 +16,9 @@ class GCPSandboxService:
         Returns:
             resourcemanager_v3.types.Operation: The operation object returned from the API.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import resourcemanager_v3
+        
         client = resourcemanager_v3.ProjectsClient()
 
         project_request = resourcemanager_v3.CreateProjectRequest(
@@ -47,6 +49,10 @@ class GCPSandboxService:
         Returns:
             resourcemanager_v3.types.Policy: The new IAM policy for the project.
         """
+        # Lazy imports to avoid startup overhead
+        from google.cloud import resourcemanager_v3
+        from google.iam.v1 import policy_pb2
+        
         user_members = [f"user:{user_email}" for user_email in user_emails]
 
         # Create a client
@@ -87,6 +93,9 @@ class GCPSandboxService:
         Returns:
             billing_v1.types.Operation: The operation object returned from the API.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import billing_v1
+        
         billing_account_id = config.BILLING_ACCOUNT_ID
         client = billing_v1.CloudBillingClient()
 
@@ -113,6 +122,9 @@ class GCPSandboxService:
         Returns:
             billing_v1.types.Operation: The operation object returned from the API.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import billing_v1
+        
         client = billing_v1.CloudBillingClient()
 
         # Initialize request argument(s)
@@ -138,6 +150,9 @@ class GCPSandboxService:
         Returns:
             resourcemanager_v3.types.Operation: The operation object returned from the API.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import resourcemanager_v3
+        
         client = resourcemanager_v3.ProjectsClient()
 
         # Initialize request argument(s)
@@ -165,8 +180,10 @@ class GCPSandboxService:
         Returns:
             tasks_v2.types.Task: The task object returned from the API.
         """
+        # Lazy imports to avoid startup overhead
+        from google.cloud import tasks_v2, run_v2
+        
         client = tasks_v2.CloudTasksClient()
-
         cloud_run_client = run_v2.ServicesClient()
         cloud_run_service_url = cloud_run_client.get_service(
             request=run_v2.GetServiceRequest(name=config.CLOUDRUN_SERVICE_ID)).uri
@@ -210,6 +227,9 @@ class GCPSandboxService:
         Returns:
             int: The total count of active projects across all folders.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import resourcemanager_v3
+        
         client = resourcemanager_v3.ProjectsClient()
         total_project_count = 0
 
@@ -229,7 +249,6 @@ class GCPSandboxService:
 
     @staticmethod
     def get_cloud_task_expiry_time(task_id):
-        # Create a client
         """
         Retrieves the scheduled time of a Cloud Task.
 
@@ -239,6 +258,9 @@ class GCPSandboxService:
         Returns:
             int: The scheduled time of the task as a Unix timestamp.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import tasks_v2
+        
         client = tasks_v2.CloudTasksClient()
 
         # Initialize request argument(s)
@@ -263,6 +285,9 @@ class GCPSandboxService:
         Returns:
             tasks_v2.types.Task: The deleted task object returned from the API.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import tasks_v2
+        
         client = tasks_v2.CloudTasksClient()
 
         # Initialize request argument(s)
@@ -287,6 +312,9 @@ class GCPSandboxService:
         Returns:
             str: The ID of the Cloud Task scheduled to delete the project.
         """
+        # Lazy import to avoid startup overhead
+        from google.cloud import tasks_v2
+        
         client = tasks_v2.CloudTasksClient()
         cloud_tasks_queue_id = config.CLOUD_TASKS_DELETION_QUEUE_ID
 

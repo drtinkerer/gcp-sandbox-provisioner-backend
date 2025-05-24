@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 import json
+from typing import Optional
 
 
 class Config(BaseSettings):
@@ -15,6 +16,9 @@ class Config(BaseSettings):
     ENABLE_GCP_PROVISIONER: bool
     ENABLE_AWS_PROVISIONER: bool
     ENABLE_AZURE_PROVISIONER: bool
+    
+    _parsed_team_folders: Optional[dict] = None
+    
     class Config:
         # env_file = None
         # For local development, point this to custom .env file
@@ -31,5 +35,26 @@ class Config(BaseSettings):
         is not set, it will be loaded from the .env file if present.
         """
         super().__init__(**kwargs)
-        # Load the AUTHORIZED_TEAM_FOLDERS from json string
-        self.AUTHORIZED_TEAM_FOLDERS = json.loads(self.AUTHORIZED_TEAM_FOLDERS)
+        # Cache the parsed JSON to avoid repeated parsing
+        if self._parsed_team_folders is None:
+            self._parsed_team_folders = json.loads(self.AUTHORIZED_TEAM_FOLDERS)
+    
+    @property
+    def parsed_team_folders(self) -> dict:
+        """Get parsed team folders, using cached version if available."""
+        if self._parsed_team_folders is None:
+            self._parsed_team_folders = json.loads(self.AUTHORIZED_TEAM_FOLDERS)
+        return self._parsed_team_folders
+
+
+# Singleton pattern to prevent multiple instantiations
+_config_instance: Optional[Config] = None
+
+def get_config() -> Config:
+    """Get the singleton config instance."""
+    global _config_instance
+    if _config_instance is None:
+        _config_instance = Config()
+        # Replace the string with parsed dict to avoid repeated JSON parsing
+        _config_instance.AUTHORIZED_TEAM_FOLDERS = _config_instance.parsed_team_folders
+    return _config_instance

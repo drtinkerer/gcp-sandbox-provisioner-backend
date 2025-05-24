@@ -1,7 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import List
-from app.core.config import Config
-config = Config()
+from app.core.config import get_config
+
+# Get the singleton config instance
+config = get_config()
 
 
 class SandboxCreate(BaseModel):
