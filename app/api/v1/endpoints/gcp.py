@@ -15,7 +15,7 @@ def get_timestamp():
 
 router = APIRouter()
 
-@router.post("/create")
+@router.post("/create", operation_id="create_gcp_sandbox")
 def create_gcp_sandbox(user_data: SandboxCreate):
     """
     Create a new sandbox environment for a given project.
@@ -127,7 +127,7 @@ def delete_gcp_sandbox(project_id: str):
     }
 
 
-@router.post("/extend")
+@router.post("/extend", operation_id="extend_gcp_sandbox")
 def extend_gcp_sandbox(user_data: SandboxExtend):
     """
     Extends the duration of an active sandbox project.

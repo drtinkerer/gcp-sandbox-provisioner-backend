@@ -15,4 +15,6 @@ dependencies = [
     "google-cloud-tasks>=2.0.0",
     "google-cloud-run>=0.10.0",
     "google-cloud-iam>=1.0.0",
+    "fastmcp>=2.5.1",
+    "fastapi-mcp>=0.3.4",
 ]
