@@ -8,8 +8,8 @@ def setup_mcp(app: FastAPI):
     """Initialize and mount MCP server."""
     mcp = FastApiMCP(
         app,
-        name="My API MCP",
-        description="Very cool MCP server",
+        name="Sandbox Provisioner",
+        description="Cloud Sanbox Provisioner MCP Server",
         include_operations=["create_gcp_sandbox", "extend_gcp_sandbox"]
     )
     mcp.mount()
